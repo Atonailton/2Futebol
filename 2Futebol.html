@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Jogo de Futebol</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        h1 {
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            display: none;
+        }
+        .result p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Busca de Jogo</h1>
+        <input type="text" id="teamInput" placeholder="Digite o nome do time">
+        <button onclick="fetchMatchData()">Buscar Jogo</button>
+
+        <div class="result" id="result">
+            <p><strong>Time Casa:</strong> <span id="homeTeam"></span></p>
+            <p><strong>Time Fora:</strong> <span id="awayTeam"></span></p>
+            <p><strong>Placar 1º Tempo:</strong> <span id="firstHalf"></span></p>
+            <p><strong>Placar 2º Tempo:</strong> <span id="secondHalf"></span></p>
+            <p><strong>Primeiro Gol:</strong> <span id="firstGoal"></span></p>
+        </div>
+    </div>
+
+    <script>
+        async function fetchMatchData() {
+            const teamName = document.getElementById("teamInput").value;
+            if (!teamName) {
+                alert("Por favor, insira o nome de um time.");
+                return;
+            }
+
+            const apiUrl = `https://api-football-v1.p.rapidapi.com/v3/fixtures?live=all`;
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'X-RapidAPI-Key': '6014d15aeb21559553781a2f2fd6e18a', // Substitua pela sua chave API
+                    'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com',
+                },
+            });
+
+            const data = await response.json();
+            const match = data.response.find(m => 
+                m.teams.home.name.toLowerCase().includes(teamName.toLowerCase()) ||
+                m.teams.away.name.toLowerCase().includes(teamName.toLowerCase())
+            );
+
+            if (!match) {
+                alert("Jogo não encontrado.");
+                return;
+            }
+
+            // Exibindo os dados na tela
+            document.getElementById("homeTeam").innerText = match.teams.home.name;
+            document.getElementById("awayTeam").innerText = match.teams.away.name;
+            document.getElementById("firstHalf").innerText = `${match.score.halftime.home} - ${match.score.halftime.away}`;
+            document.getElementById("secondHalf").innerText = `${match.score.fulltime.home} - ${match.score.fulltime.away}`;
+            document.getElementById("firstGoal").innerText = match.goals && match.goals.length ? match.goals[0].team.name : "Não identificado";
+            
+            document.getElementById("result").style.display = "block";
+        }
+    </script>
+</body>
+</html>
